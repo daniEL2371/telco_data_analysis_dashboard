@@ -7,14 +7,20 @@ import plotly.express as px
 import os
 import sys
 
-sys.path.append(os.path.abspath(os.path.join('..')))
 
-from tweeter_data_explorator import TweeterDataExplorator
 
 
 
 st.set_page_config(page_title="Telecom Data Analysis", layout="wide")
 
+
+def read_csv(csv_path):
+    try:
+        df = pd.read_csv(csv_path)
+        print("file read as csv")
+        return df
+    except FileNotFoundError:
+        print("file not found")
 
 
 
@@ -24,7 +30,7 @@ class Dashboard:
         self.title = title
         self.page = None
         self.df = self.load_data().copy(deep=True)
-        self.tweeterDataExplorator = TweeterDataExplorator(self.df)
+        # self.tweeterDataExplorator = TweeterDataExplorator(self.df)
 
     @st.cache()
     def load_data(self):
