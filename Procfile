@@ -1,1 +1,1 @@
-web: streamlit run dashboard.pyfolder
+web: streamlit run dashboard.py
