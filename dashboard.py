@@ -5,6 +5,8 @@ import altair as alt
 from wordcloud import WordCloud
 import plotly.express as px
 import plotly.graph_objects as go
+import plotly.figure_factory as ff
+import numpy as np
 
 
 import os
@@ -186,7 +188,7 @@ class Dashboard:
         fig = px.bar(res_df, x='msisdn', y='total_traffic')
         st.plotly_chart(fig)
 
-    def render_data_analysis(self):
+    def render_overview(self):
 
         self.top_handset_type()
         self.top_manufacturer()
@@ -294,7 +296,7 @@ class Dashboard:
                                                                   'duration': 'mean', 'total_traffic': 'mean'})
         cluster_avg['clusters'] = cluster_avg.index
 
-        st.markdown("#### average duration per clusters")   
+        st.markdown("#### average duration per clusters")
         fig = px.bar(cluster_avg, x='clusters', y='duration')
         st.plotly_chart(fig)
 
@@ -311,12 +313,11 @@ class Dashboard:
         self.render_siderbar([
             'Data overview', "User Overview Analysis",
             'User Engagement Analysis', 'User Experience Analysis',
-            "User Satsfaction Analysis"
         ], "select page: ")
 
-        sample = st.number_input(label="Sample", step=1,
-                                 value=1000, key="sample")
         if (self.page == "Data overview"):
+            sample = st.number_input(label="Sample", step=1,
+                                     value=1000, key="sample")
 
             st.markdown(f"### Sample {sample} Data Over View")
             st.write(self.df.sample(sample))
@@ -332,17 +333,42 @@ class Dashboard:
 
         elif (self.page == "User Overview Analysis"):
             st.markdown("### User Overview Analysis")
-            self.render_data_analysis()
-            # self.render_visulazation()
-        elif (self.page == "User Satsfaction Analysis"):
-            st.markdown("### User Satsfaction Analysis")
-            # self.render_visulazation()
+            self.render_overview()
+
         elif (self.page == "User Engagement Analysis"):
             st.markdown("### User Engagement Analysis")
             self.top_customers_session_freq()
         elif (self.page == "User Experience Analysis"):
             st.markdown("### User Experience Analysis")
-            # self.render_visulazation()
+
+            st.markdown("#### Distribution of tcp retransmission")
+            fig = px.histogram(self.experience_df, x="tcp_retrans_bytes")
+            st.plotly_chart(fig)
+
+            st.markdown("#### Distribution of through output")
+            fig = px.histogram(self.experience_df, x="avg_throughput_kbps")
+            st.plotly_chart(fig)
+
+            st.markdown("#### Distribution of round trip")
+            fig = px.histogram(self.experience_df, x="avg_rtt_ms")
+            st.plotly_chart(fig)
+
+            avg_cluster = self.experience_df.groupby('clusters').agg(
+                {'avg_throughput_kbps': 'mean',  'avg_rtt_ms': 'mean',
+                 'tcp_retrans_bytes': 'mean'})
+            avg_cluster['clusters'] = avg_cluster.index
+
+            st.markdown("#### average through output per clusters")
+            fig = px.bar(avg_cluster, x='clusters', y='avg_throughput_kbps')
+            st.plotly_chart(fig)
+
+            st.markdown("#### average round trip time per clusters")
+            fig = px.bar(avg_cluster, x='clusters', y='avg_rtt_ms')
+            st.plotly_chart(fig)
+
+            st.markdown("#### average tcp transmission bytes per clusters")
+            fig = px.bar(avg_cluster, x='clusters', y='tcp_retrans_bytes')
+            st.plotly_chart(fig)
 
 
 if __name__ == "__main__":
