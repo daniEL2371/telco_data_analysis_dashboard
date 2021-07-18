@@ -4,6 +4,7 @@ import streamlit as st
 import altair as alt
 from wordcloud import WordCloud
 import plotly.express as px
+import plotly.graph_objects as go
 
 
 import os
@@ -243,6 +244,8 @@ class Dashboard:
                          color='clusters', size='total_traffic')
         st.plotly_chart(fig)
 
+        self.cluster_info()
+
     def application_heat_map(self):
 
         st.markdown("#### Specific Application coorelation")
@@ -284,6 +287,23 @@ class Dashboard:
 
         fig = px.line(res_df,
                       x="decile", y=['total_data'])
+        st.plotly_chart(fig)
+
+    def cluster_info(self):
+        cluster_avg = self.engagement_df.groupby('clusters').agg({'sessions_frequency': 'mean',
+                                                                  'duration': 'mean', 'total_traffic': 'mean'})
+        cluster_avg['clusters'] = cluster_avg.index
+
+        st.markdown("#### average duration per clusters")   
+        fig = px.bar(cluster_avg, x='clusters', y='duration')
+        st.plotly_chart(fig)
+
+        st.markdown("#### average sessions frequency per clusters")
+        fig = px.bar(cluster_avg, x='clusters', y='sessions_frequency')
+        st.plotly_chart(fig)
+
+        st.markdown("#### average total data per clusters")
+        fig = px.bar(cluster_avg, x='clusters', y='total_traffic')
         st.plotly_chart(fig)
 
     def render(self):
