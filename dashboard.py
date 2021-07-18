@@ -78,6 +78,7 @@ class Dashboard:
             user_experience_metrics_csv).copy(deep=True)
 
         self.df = self.df.rename(columns={'msisdn/number': 'msisdn'})
+        self.df = self.df.rename(columns={'dur._(ms)': 'duration'})
 
         self.df['msisdn'] = self.df['msisdn'].astype(
             "int")
@@ -242,24 +243,72 @@ class Dashboard:
                          color='clusters', size='total_traffic')
         st.plotly_chart(fig)
 
+    def application_heat_map(self):
+
+        st.markdown("#### Specific Application coorelation")
+
+        total_data_2 = self.df[['social_media', 'google', 'email', 'youtube', 'netflix',
+                                'gaming']]
+        corr = total_data_2.corr()
+
+        fig = px.imshow(corr)
+        st.plotly_chart(fig)
+
+    def decile_graph(self):
+        scaled_explore_feature_df = self.df[[
+            'msisdn', 'total_data', 'duration']]
+        scaled_explore_feature_df['duration'] = self.df['duration']/1000
+
+        scaled_explore_feature_df_agg = scaled_explore_feature_df.groupby(
+            'msisdn').agg({'duration': 'sum', 'total_data': 'sum'})
+
+        deciles = pd.qcut(scaled_explore_feature_df_agg['duration'], 5, labels=["1st_decile", "2nd_decile",
+                                                                                "3rd_decile", "4th_decile",
+                                                                                "5th_decile"])
+
+        _df = scaled_explore_feature_df_agg.copy()
+
+        _df['decile'] = deciles
+
+        res_df = _df.groupby('decile').agg(
+            {'total_data': 'sum', 'duration': 'sum'})
+        res_df['decile'] = res_df.index
+
+        st.markdown("#### duraton vs decile graph")
+
+        fig = px.line(res_df,
+                      x="decile", y=['duration'])
+        st.plotly_chart(fig)
+
+        st.markdown("#### total data vs decile graph")
+
+        fig = px.line(res_df,
+                      x="decile", y=['total_data'])
+        st.plotly_chart(fig)
+
     def render(self):
         st.title(f"Welcome To {self.title}")
         self.render_siderbar([
-            'Data Analysis', "User Overview Analysis",
+            'Data overview', "User Overview Analysis",
             'User Engagement Analysis', 'User Experience Analysis',
             "User Satsfaction Analysis"
         ], "select page: ")
 
-        if (self.page == "Data Analysis"):
+        sample = st.number_input(label="Sample", step=1,
+                                 value=1000, key="sample")
+        if (self.page == "Data overview"):
 
-            st.markdown("### Samle 1000 Data Over View")
-            st.write(self.df.sample(1000))
+            st.markdown(f"### Sample {sample} Data Over View")
+            st.write(self.df.sample(sample))
 
-            st.markdown("### Sample Engagement metrics df")
-            st.write(self.engagement_df.sample(1000))
+            st.markdown(f"### Sample {sample} Engagement metrics df")
+            st.write(self.engagement_df.sample(sample))
 
-            st.markdown("### Sample Experience metrics df")
-            st.write(self.experience_df.sample(1000))
+            st.markdown(f"### Sample {sample} Experience metrics df")
+            st.write(self.experience_df.sample(sample))
+
+            self.application_heat_map()
+            self.decile_graph()
 
         elif (self.page == "User Overview Analysis"):
             st.markdown("### User Overview Analysis")
