@@ -155,10 +155,42 @@ class Dashboard:
         st.bar_chart(data=res, width=0, height=400,
                      use_container_width=True)
 
+    def top_freq_users(self):
+        st.markdown("#### Top Customers with has frequent sessions")
+
+        top = st.number_input(label="Top", step=1,
+                              value=5, key="top1")
+        res_df = self.engagement_df.sort_values(
+            by=['sessions_frequency'], ascending=False).head(top)
+        fig = px.bar(res_df, x='msisdn', y='sessions_frequency')
+        st.plotly_chart(fig)
+
+    def top_customers_by_duration(self):
+        st.markdown("#### Top Customers with has spent more time")
+        top = st.number_input(label="Top", step=1,
+                              value=5, key="top2")
+        res_df = self.engagement_df.sort_values(
+            by=['duration'], ascending=False).head(top)
+        fig = px.bar(res_df, x='msisdn', y='duration')
+        st.plotly_chart(fig)
+
+    def top_customers_by_data(self):
+        st.markdown("#### Top Customers with has uses more data traffic")
+
+        top = st.number_input(label="Top", step=1,
+                              value=5, key="top3")
+        res_df = self.engagement_df.sort_values(
+            by=['total_traffic'], ascending=False).head(top)
+        fig = px.bar(res_df, x='msisdn', y='total_traffic')
+        st.plotly_chart(fig)
+
     def render_data_analysis(self):
 
         self.top_handset_type()
         self.top_manufacturer()
+        self.top_freq_users()
+        self.top_customers_by_data()
+        self.top_customers_by_duration()
         # self.top_application_used()
 
     def render_top_customers_for_app(self):
@@ -204,7 +236,7 @@ class Dashboard:
         fig = px.bar(top_customers, x='msisdn', y='duration')
         st.plotly_chart(fig)
 
-        st.markdown("#### Engagment clusters")
+        st.markdown("#### Engagement clusters")
 
         fig = px.scatter(self.engagement_df, x='duration', y="total_traffic",
                          color='clusters', size='total_traffic')
